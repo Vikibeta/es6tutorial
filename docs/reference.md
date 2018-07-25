@@ -67,6 +67,7 @@
 - Axel Rauschmayer, [New regular expression features in ECMAScript 6](http://www.2ality.com/2015/07/regexp-es6.html)：ES6 正则特性的详细介绍
 - Yang Guo, [RegExp lookbehind assertions](http://v8project.blogspot.jp/2016/02/regexp-lookbehind-assertions.html)：介绍后行断言
 - Axel Rauschmayer, [ES proposal: RegExp named capture groups](http://2ality.com/2017/05/regexp-named-capture-groups.html): 具名组匹配的介绍
+- Mathias Bynens, [ECMAScript regular expressions are getting better!](https://mathiasbynens.be/notes/es-regexp-proposals): 介绍 ES2018 添加的多项正则语法
 
 ## 数值
 
@@ -139,6 +140,7 @@
 ## Promise 对象
 
 - Jake Archibald, [JavaScript Promises: There and back again](http://www.html5rocks.com/en/tutorials/es6/promises/)
+- Jake Archibald, [Tasks, microtasks, queues and schedules](https://jakearchibald.com/2015/tasks-microtasks-queues-and-schedules/)
 - Tilde, [rsvp.js](https://github.com/tildeio/rsvp.js)
 - Sandeep Panda, [An Overview of JavaScript Promises](http://www.sitepoint.com/overview-javascript-promises/): ES6 Promise 入门介绍
 - Dave Atchley, [ES6 Promises](http://www.datchley.name/es6-promises/): Promise 的语法介绍

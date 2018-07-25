@@ -313,16 +313,27 @@ Reflect.getPrototypeOf(1) // 报错
 
 ### Reflect.setPrototypeOf(obj, newProto)
 
-`Reflect.setPrototypeOf`方法用于设置对象的`__proto__`属性，返回第一个参数对象，对应`Object.setPrototypeOf(obj, newProto)`。
+`Reflect.setPrototypeOf`方法用于设置目标对象的原型（prototype），对应`Object.setPrototypeOf(obj, newProto)`方法。它返回一个布尔值，表示是否设置成功。
 
 ```javascript
-const myObj = new FancyThing();
+const myObj = {};
 
 // 旧写法
-Object.setPrototypeOf(myObj, OtherThing.prototype);
+Object.setPrototypeOf(myObj, Array.prototype);
 
 // 新写法
-Reflect.setPrototypeOf(myObj, OtherThing.prototype);
+Reflect.setPrototypeOf(myObj, Array.prototype);
+
+myObj.length // 0
+```
+
+如果无法设置目标对象的原型（比如，目标对象禁止扩展），`Reflect.setPrototypeOf`方法返回`false`。
+
+```javascript
+Reflect.setPrototypeOf({}, null)
+// true
+Reflect.setPrototypeOf(Object.freeze({}), null)
+// false
 ```
 
 如果第一个参数不是对象，`Object.setPrototypeOf`会返回第一个参数本身，而`Reflect.setPrototypeOf`会报错。
@@ -386,6 +397,24 @@ Reflect.defineProperty(MyDate, 'now', {
 ```
 
 如果`Reflect.defineProperty`的第一个参数不是对象，就会抛出错误，比如`Reflect.defineProperty(1, 'foo')`。
+
+这个方法可以与`Proxy.defineProperty`配合使用。
+
+```javascript
+const p = new Proxy({}, {
+  defineProperty(target, prop, descriptor) {
+    console.log(descriptor);
+    return Reflect.defineProperty(target, prop, descriptor);
+  }
+});
+
+p.foo = 'bar';
+// {value: "bar", writable: true, enumerable: true, configurable: true}
+
+p.foo // "bar"
+```
+
+上面代码中，`Proxy.defineProperty`对属性赋值设置了拦截，然后使用`Reflect.defineProperty`完成了赋值。
 
 ### Reflect.getOwnPropertyDescriptor(target, propertyKey)
 

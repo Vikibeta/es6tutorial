@@ -861,13 +861,13 @@ JavaScript 语言的对象继承是通过原型链实现的。ES6 提供了更�
 `__proto__`属性（前后各两个下划线），用来读取或设置当前对象的`prototype`对象。目前，所有浏览器（包括 IE11）都部署了这个属性。
 
 ```javascript
-// es6 的写法
+// es5 的写法
 const obj = {
   method: function() { ... }
 };
 obj.__proto__ = someOtherObj;
 
-// es5 的写法
+// es6 的写法
 var obj = Object.create(someOtherObj);
 obj.method = function() { ... };
 ```
@@ -1032,6 +1032,7 @@ const proto = {
 };
 
 const obj = {
+  foo: 'world',
   find() {
     return super.foo;
   }
@@ -1255,11 +1256,11 @@ a // 1
 b // [2, 3]
 ```
 
-ES2017 将这个运算符[引入](https://github.com/sebmarkbage/ecmascript-rest-spread)了对象。
+ES2018 将这个运算符[引入](https://github.com/sebmarkbage/ecmascript-rest-spread)了对象。
 
-**（1）解构赋值**
+### 解构赋值
 
-对象的解构赋值用于从一个对象取值，相当于将所有可遍历的、但尚未被读取的属性，分配到指定的对象上面。所有的键和它们的值，都会拷贝到新对象上面。
+对象的解构赋值用于从一个对象取值，相当于将目标对象自身的所有可遍历的（enumerable）、但尚未被读取的属性，分配到指定的对象上面。所有的键和它们的值，都会拷贝到新对象上面。
 
 ```javascript
 let { x, y, ...z } = { x: 1, y: 2, a: 3, b: 4 };
@@ -1316,13 +1317,19 @@ o3.a // undefined
 const o = Object.create({ x: 1, y: 2 });
 o.z = 3;
 
-let { x, ...{ y, z } } = o;
+let { x, ...newObj } = o;
+let { y, z } = newObj;
 x // 1
 y // undefined
 z // 3
 ```
 
-上面代码中，变量`x`是单纯的解构赋值，所以可以读取对象`o`继承的属性；变量`y`和`z`是扩展运算符的解构赋值，只能读取对象`o`自身的属性，所以变量`z`可以赋值成功，变量`y`取不到值。
+上面代码中，变量`x`是单纯的解构赋值，所以可以读取对象`o`继承的属性；变量`y`和`z`是扩展运算符的解构赋值，只能读取对象`o`自身的属性，所以变量`z`可以赋值成功，变量`y`取不到值。ES6 规定，变量声明语句之中，如果使用解构赋值，扩展运算符后面必须是一个变量名，而不能是一个解构赋值表达式，所以上面代码引入了中间变量`newObj`，如果写成下面这样会报错。
+
+```javascript
+let { x, ...{ y, z } } = o;
+// SyntaxError: ... must be followed by an identifier in declaration contexts
+```
 
 解构赋值的一个用处，是扩展某个函数的参数，引入其他操作。
 
@@ -1331,7 +1338,7 @@ function baseFunction({ a, b }) {
   // ...
 }
 function wrapperFunction({ x, y, ...restConfig }) {
-  // 使用x和y参数进行操作
+  // 使用 x 和 y 参数进行操作
   // 其余参数传给原始函数
   return baseFunction(restConfig);
 }
@@ -1339,9 +1346,9 @@ function wrapperFunction({ x, y, ...restConfig }) {
 
 上面代码中，原始函数`baseFunction`接受`a`和`b`作为参数，函数`wrapperFunction`在`baseFunction`的基础上进行了扩展，能够接受多余的参数，并且保留原始函数的行为。
 
-**（2）扩展运算符**
+### 扩展运算符
 
-扩展运算符（`...`）用于取出参数对象的所有可遍历属性，拷贝到当前对象之中。
+对象的扩展运算符（`...`）用于取出参数对象的所有可遍历属性，拷贝到当前对象之中。
 
 ```javascript
 let z = { a: 3, b: 4 };
@@ -1468,45 +1475,3 @@ let runtimeError = {
 };
 ```
 
-## Null 传导运算符
-
-编程实务中，如果读取对象内部的某个属性，往往需要判断一下该对象是否存在。比如，要读取`message.body.user.firstName`，安全的写法是写成下面这样。
-
-```javascript
-const firstName = (message
-  && message.body
-  && message.body.user
-  && message.body.user.firstName) || 'default';
-```
-
-这样的层层判断非常麻烦，因此现在有一个[提案](https://github.com/claudepache/es-optional-chaining)，引入了“Null 传导运算符”（null propagation operator）`?.`，简化上面的写法。
-
-```javascript
-const firstName = message?.body?.user?.firstName || 'default';
-```
-
-上面代码有三个`?.`运算符，只要其中一个返回`null`或`undefined`，就不再往下运算，而是返回`undefined`。
-
-“Null 传导运算符”有四种用法。
-
-- `obj?.prop` // 读取对象属性
-- `obj?.[expr]` // 同上
-- `func?.(...args)` // 函数或对象方法的调用
-- `new C?.(...args)` // 构造函数的调用
-
-传导运算符之所以写成`obj?.prop`，而不是`obj?prop`，是为了方便编译器能够区分三元运算符`?:`（比如`obj?prop:123`）。
-
-下面是更多的例子。
-
-```javascript
-// 如果 a 是 null 或 undefined, 返回 undefined
-// 否则返回 a.b.c().d
-a?.b.c().d
-
-// 如果 a 是 null 或 undefined，下面的语句不产生任何效果
-// 否则执行 a.b = 42
-a?.b = 42
-
-// 如果 a 是 null 或 undefined，下面的语句不产生任何效果
-delete a?.b
-```

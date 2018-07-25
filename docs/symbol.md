@@ -163,13 +163,15 @@ let obj = {
 Symbol 类型还可以用于定义一组常量，保证这组常量的值都是不相等的。
 
 ```javascript
+const log = {};
+
 log.levels = {
   DEBUG: Symbol('debug'),
   INFO: Symbol('info'),
   WARN: Symbol('warn')
 };
-log(log.levels.DEBUG, 'debug message');
-log(log.levels.INFO, 'info message');
+console.log(log.levels.DEBUG, 'debug message');
+console.log(log.levels.INFO, 'info message');
 ```
 
 下面是另外一个例子。
@@ -422,11 +424,13 @@ console.log(a.foo);
 但是，这里有一个问题，全局变量`global._foo`是可写的，任何文件都可以修改。
 
 ```javascript
+global._foo = { foo: 'world' };
+
 const a = require('./mod.js');
-global._foo = 123;
+console.log(a.foo);
 ```
 
-上面的代码，会使得别的脚本加载`mod.js`都失真。
+上面的代码，会使得加载`mod.js`的脚本都失真。
 
 为了防止这种情况出现，我们就可以使用 Symbol。
 
@@ -448,8 +452,9 @@ module.exports = global[FOO_KEY];
 上面代码中，可以保证`global[FOO_KEY]`不会被无意间覆盖，但还是可以被改写。
 
 ```javascript
+global[Symbol.for('foo')] = { foo: 'world' };
+
 const a = require('./mod.js');
-global[Symbol.for('foo')] = 123;
 ```
 
 如果键名使用`Symbol`方法生成，那么外部将无法引用这个值，当然也就无法改写。
@@ -461,7 +466,7 @@ const FOO_KEY = Symbol('foo');
 // 后面代码相同 ……
 ```
 
-上面代码将导致其他脚本都无法引用`FOO_KEY`。但这样也有一个问题，就是如果多次执行这个脚本，每次得到的`FOO_KEY`都是不一样的。虽然 Node 会将脚本的执行结果缓存，一般情况下，不会多次执行同一个脚本，但是用户可以手动清除缓存，所以也不是完全可靠。
+上面代码将导致其他脚本都无法引用`FOO_KEY`。但这样也有一个问题，就是如果多次执行这个脚本，每次得到的`FOO_KEY`都是不一样的。虽然 Node 会将脚本的执行结果缓存，一般情况下，不会多次执行同一个脚本，但是用户可以手动清除缓存，所以也不是绝对可靠。
 
 ## 内置的 Symbol 值
 
@@ -569,13 +574,17 @@ a2[1] = 6;
 class MyArray extends Array {
 }
 
-const a = new MyArray();
-a.map(x => x) instanceof MyArray // true
+const a = new MyArray(1, 2, 3);
+const b = a.map(x => x);
+const c = a.filter(x => x > 1);
+
+b instanceof MyArray // true
+c instanceof MyArray // true
 ```
 
-上面代码中，子类`MyArray`继承了父类`Array`。`a.map(x => x)`会创建一个`MyArray`的衍生对象，该衍生对象还是`MyArray`的实例。
+上面代码中，子类`MyArray`继承了父类`Array`，`a`是`MyArray`的实例，`b`和`c`是`a`的衍生对象。你可能会认为，`b`和`c`都是调用数组方法生成的，所以应该是数组（`Array`的实例），但实际上它们也是`MyArray`的实例。
 
-现在，`MyArray`设置`Symbol.species`属性。
+`Symbol.species`属性就是为了解决这个问题而提供的。现在，我们可以为`MyArray`设置`Symbol.species`属性。
 
 ```javascript
 class MyArray extends Array {
@@ -583,7 +592,7 @@ class MyArray extends Array {
 }
 ```
 
-上面代码中，由于定义了`Symbol.species`属性，创建衍生对象时就会使用这个属性返回的函数，作为构造函数。这个例子也说明，定义`Symbol.species`属性要采用`get`读取器。默认的`Symbol.species`属性等同于下面的写法。
+上面代码中，由于定义了`Symbol.species`属性，创建衍生对象时就会使用这个属性返回的函数，作为构造函数。这个例子也说明，定义`Symbol.species`属性要采用`get`取值器。默认的`Symbol.species`属性等同于下面的写法。
 
 ```javascript
 static get [Symbol.species]() {
@@ -599,11 +608,13 @@ class MyArray extends Array {
 }
 
 const a = new MyArray();
-a.map(x => x) instanceof MyArray // false
-a.map(x => x) instanceof Array // true
+const b = a.map(x => x);
+
+b instanceof MyArray // false
+b instanceof Array // true
 ```
 
-上面代码中，`a.map(x => x)`创建的衍生对象，就不是`MyArray`的实例，而直接就是`Array`的实例。
+上面代码中，`a.map(x => x)`生成的衍生对象，就不是`MyArray`的实例，而直接就是`Array`的实例。
 
 再看一个例子。
 
