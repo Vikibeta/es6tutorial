@@ -58,6 +58,18 @@ const arr = [
 // [1]
 ```
 
+注意，扩展运算符如果放在括号中，JavaScript 引擎就会认为这是函数调用，否则就会报错。
+
+```javascript
+(...[1,2])
+// Uncaught SyntaxError: Unexpected number
+
+console.log((...[1,2]))
+// Uncaught SyntaxError: Unexpected number
+```
+
+上面两种情况都会报错，因为扩展运算符所在的括号不是函数调用，而`console.log(...[1, 2])`就不会报错，因为这时是函数调用。
+
 ### 替代函数的 apply 方法
 
 由于扩展运算符可以展开数组，所以不再需要`apply`方法，将数组转为函数的参数了。
@@ -277,7 +289,7 @@ let nodeList = document.querySelectorAll('div');
 let array = [...nodeList];
 ```
 
-上面代码中，`querySelectorAll`方法返回的是一个`nodeList`对象。它不是数组，而是一个类似数组的对象。这时，扩展运算符可以将其转为真正的数组，原因就在于`NodeList`对象实现了 Iterator 。
+上面代码中，`querySelectorAll`方法返回的是一个`NodeList`对象。它不是数组，而是一个类似数组的对象。这时，扩展运算符可以将其转为真正的数组，原因就在于`NodeList`对象实现了 Iterator 。
 
 对于那些没有部署 Iterator 接口的类似数组的对象，扩展运算符就无法将其转为真正的数组。
 
